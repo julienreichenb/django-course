@@ -1,0 +1,77 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load bootstrap4 %}
+{% block title %}{{ post.title|title }}{% endblock %}}
+{% block content %}
+
+<div class="col-sm-9">
+    <div class="mt-3">
+        <h2>{{ post.title|title }}</h2>
+        <small>Posted on {{ post.created_at }}</small>
+        <hr>
+        <p class="text-muted">
+            {{ post.text|linebreaks|safe }}
+        </p>
+        <a href="{% url 'post-list' post.category.slug %}"
+           class="badge badge-info">
+            {{ post.category.name|capfirst }}
+        </a>
+    </div>
+    <div id="comments" class="mt-3 border-top border-secondary">
+        {% if message %}
+        <div class="alert alert-success alert-dismissible show fade mt-2">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+        {% endif %}
+        <h3>Comments</h3>
+        <form action="{% url 'post-detail' post.pk %}" method="POST" class="form">
+            {% csrf_token %}
+            {% bootstrap_form comment_form %}
+            {% buttons %}
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+            {% endbuttons %}
+        </form>
+        <ul class="list-unstyled">
+            {% for comment in comments %}
+            <li class="media">
+                  <img class="mr-3" src="{% static 'img/default-user.jpg' %}" width="80">
+            <div class="media-body">
+                <h5 class="mt-0 mb-1">{{ comment.author }}</h5>
+                <p class="small text-muted">
+                    {{ comment.created_at }}
+                </p>
+                <p>
+                    {% if comment.status == 'moderated' %}
+                    <span class="font-weight-light font-italic text-muted">
+                        !! Moderated comment !! {{ comment.moderation_text }}
+                    </span>
+                    {% else %}
+                    {{ comment.text }}
+                    {% endif %}
+                </p>
+            </div>
+            </li>
+            {% empty %}
+            <li class="media">No comments yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<div class="col-sm-3">
+        <h3 class="border-bottom border-dark">Related Posts</h3>
+        {% for rel in related %}
+        <div class="card mt-3">
+            <div class="card-header"><a href="{% url 'post-detail' rel.pk %}">{{ rel.title|title|truncatewords:4 }}</a></div>
+            <div class="small card-body">
+                <small>Posted on {{ rel.created_at }}</small>
+                <p>{{ rel.text|truncatewords:30|linebreaks|safe }}</p>
+            </div>
+        </div>
+        {% empty %}
+        This is the only post for now.
+        {% endfor %}
+</div>
+{% endblock %}
